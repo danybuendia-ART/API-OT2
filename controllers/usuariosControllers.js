@@ -12,7 +12,10 @@ exports.getUsuarios = (req, res) => {
 // Crear un usuario
 exports.createUsuario = (req, res) => {
   const { nombre, correo, pass } = req.body;
-
+  console.log(`datos obtenidos: 
+    ${nombre}\n
+    ${correo}\n
+    ${pass}\n`)
   // 1. Verificar si ya existe un usuario con ese nombre o correo
   db.query(
     'SELECT * FROM usuarios WHERE nombre = ? OR correo = ?',
@@ -21,7 +24,7 @@ exports.createUsuario = (req, res) => {
       if (err) return res.status(500).json({ error: err });
 
       if (results.length > 0) {
-        console.log("Intento de registro con nombre o correo ya existente:", { nombre, correo });
+        //console.log("Intento de registro con nombre o correo ya existente:", { nombre, correo });
         // Ya existe un usuario con ese nombre o correo
         return res.json({ 
           warn: "El usuario o correo ya está registrados" 
@@ -44,6 +47,8 @@ exports.createUsuario = (req, res) => {
 };
 exports.login = (req, res) => {
   const { correo, pass } = req.body;
+
+  console.log(`${correo} \n ${pass}`);
   db.query(
     'SELECT id, nombre, correo, permiso FROM usuarios WHERE correo = ? AND pass = ?',
     [correo, pass],
