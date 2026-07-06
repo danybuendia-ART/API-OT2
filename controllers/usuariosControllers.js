@@ -5,7 +5,7 @@ const { encryptData } = require("../utils/encrypt");
 exports.getUsuarios = (req, res) => {
   db.query('SELECT id, nombre, correo, permiso FROM usuarios', (err, results) => {
     if (err) return res.status(500).json({ error: err });
-    res.json(results);
+    res.json(results.length);
     console.log("peticion para obtener usuarios de la bd")
   });
 };
@@ -60,7 +60,8 @@ exports.login = (req, res) => {
       //variable que devuelve la encryptacion de la funcion importada
       const encryptedResponse = encryptData(results)
 
-      console.log("Inicio de sesión exitoso:", { id: results[0].id, nombre: results[0].nombre, correo: results[0].correo });
+      //console.log("Inicio de sesión exitoso:", { id: results[0].id, nombre: results[0].nombre, correo: results[0].correo });
+      console.log(`envio de datos: ${encryptedResponse}`);
       res.json({ encryptedResponse }, { message: `inicio de sesión exitoso bienvenid@ ${results[0].nombre}` });
     }
   );

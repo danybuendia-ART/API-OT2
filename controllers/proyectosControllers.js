@@ -17,7 +17,7 @@ exports.getProyects = (req, res) => {
                 const { fecha_inicio, fecha_finalizado } = proyecto;
 
             })*/
-            console.log(
+            /*console.log(
                 result.map(x => {
                     const { id, fecha_inicio, fecha_finalizado, estatus, nombre, descripcion, fk_usuario } = x;
 
@@ -33,7 +33,8 @@ exports.getProyects = (req, res) => {
 
                     return resultado
                 })
-            )
+            )*/
+
             res.json(result);
         } else {
             res.json({ "warn": "no hay proyectos por el momento" });
@@ -44,11 +45,11 @@ exports.getProyects = (req, res) => {
 }
 
 exports.insertProyect = (req, res) => {
-    const { fecha_inicio, fecha_finalizado, estatus, nombre, descripcion, fk_usuario } = req.body;
+    const { estatus, nombre, descripcion, fk_usuario } = req.body;
 
     db.query(
-        'INSERT INTO proyectos (fecha_inicio, fecha_finalizado, estatus, nombre, descripcion, fk_usuario)VALUES(?, ?, ?, ?, ?, ?)',
-        [fecha_inicio, fecha_finalizado, estatus, nombre, descripcion, fk_usuario],
+        'INSERT INTO proyectos (fecha_inicio, estatus, nombre, descripcion, fk_usuario)VALUES(NOW(), ?, ?, ?, ?)',
+        [ estatus, nombre, descripcion, fk_usuario],
         (err, result) => {
             if (err) return detectError(err);
             if (result) {
