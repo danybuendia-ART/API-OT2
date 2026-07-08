@@ -41,6 +41,9 @@ app.use("/proyectos",proyectoRouter);
 const employeesRouter = require('./routes/routesEmployees');
 app.use('/employees', employeesRouter);
 
+const tasksRouter = require("./routes/routesTasks");
+app.use("/tasks", tasksRouter);
+
 app.get('/', (req, res) => {
     res.send("servidor habilitado");
     console.log("peticion recibida");
