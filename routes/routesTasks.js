@@ -9,10 +9,11 @@ router.post('/', (req, res) => {
   if (req.body.action) {
     //casos de uso para cada peticion del endpoint usuarios
     switch (req.body.action) {
-      
       case 'create':
-    
         taskController.createTask(req, res);
+        break;
+        case "changeStatus":
+        taskController.changeStatus(req,res);  
         break;
       /*case 'update': //en desarrollo
         taskController.updateUsuario(req, res);
