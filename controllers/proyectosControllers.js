@@ -3,44 +3,73 @@ const db = require('../db/connection');
 const { encryptData } = require("../utils/encrypt");
 
 
-//obtiene los proyectos activos
+//obtiene los proyectos activos con sus tareas
 exports.getProyects = (req, res) => {
-    db.query('SELECT * FROM proyectos WHERE activo = 1;', (err, result) => {
+    const sql = `
+        SELECT
+            p.id AS projectId,
+            p.nombre AS projectName,
+            p.descripcion AS projectDescription,
+            p.estatus AS projectStatus,
+            p.fecha_inicio AS projectCreatedAt,
+            p.fecha_finalizado AS projectCompletedAt,
+            t.id AS taskId,
+            t.titulo AS taskTitle,
+            t.descripcion AS taskDescription,
+            t.responsable AS taskAssignedTo,
+            t.completado AS taskCompleted,
+            t.fecha_inicio AS taskCreatedAt,
+            t.fechaEntrega AS taskDueDate,
+            t.cantidad AS taskQuantity,
+            t.unidad AS taskUnit
+        FROM proyectos p
+        LEFT JOIN tareas t ON p.id = t.fk_proyecto
+        WHERE p.activo = 1
+        ORDER BY p.id, t.id;
+    `;
+
+    db.query(sql, (err, rows) => {
         if (err) return res.status(500).json({ error: err });
 
-        //aqui tengo que consultar las tareas que hay en cada proyecto obtenido
-        // y agregarlas con una nueva clave task con el valor de un objeto, 
-        //cada tarea seria un objeto
-        let proyectos = []
-        if (result.length > 0) {
-            /*proyectos = result.map(proyecto => {
-                const { fecha_inicio, fecha_finalizado } = proyecto;
-
-            })*/
-            /*console.log(
-                result.map(x => {
-                    const { id, fecha_inicio, fecha_finalizado, estatus, nombre, descripcion, fk_usuario } = x;
-
-                    let resultado = [{
-                        fecha_inicio,
-                        fecha_finalizado,
-                        estatus,
-                        nombre,
-                        descripcion,
-                        fk_usuario,
-                        task: []
-                    }]
-
-                    return resultado
-                })
-            )*/
-
-            res.json(result);
-        } else {
-            res.json({ "warn": "no hay proyectos por el momento" });
+        if (!rows.length) {
+            return res.json({ warn: 'no hay proyectos por el momento' });
         }
 
+        const proyectosMap = new Map();
 
+        rows.forEach(row => {
+            const projectId = row.projectId;
+            if (!proyectosMap.has(projectId)) {
+                proyectosMap.set(projectId, {
+                    id: projectId,
+                    name: row.projectName,
+                    description: row.projectDescription,
+                    status: row.projectStatus,
+                    createdAt: row.projectCreatedAt,
+                    completedAt: row.projectCompletedAt,
+                    tasks: []
+                });
+            }
+
+            if (row.taskId) {
+                proyectosMap.get(projectId).tasks.push({
+                    id: row.taskId,
+                    title: row.taskTitle,
+                    description: row.taskDescription,
+                    assignedTo: row.taskAssignedTo,
+                    completed: Boolean(row.taskCompleted),
+                    createdAt: row.taskCreatedAt,
+                    dueDate: row.taskDueDate,
+                    quantity: row.taskQuantity,
+                    unit: row.taskUnit
+                });
+            }
+        });
+
+        const proyectos = Array.from(proyectosMap.values());
+        console.log("-----------------------------------------");
+        console.log(proyectos);
+        res.json(proyectos);
     });
 }
 

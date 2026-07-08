@@ -53,7 +53,6 @@ exports.createTask = (req, res) => {
             if (err) {
                 console.log(err);
                 return res.status(500).json({ error: err });
-
             }
             console.log("Tarea creada correctamente:", title, description);
             res.json(encryptData({ message: "Usuario creado exitosamente" }));
