@@ -10,6 +10,9 @@ router.post('/', (req,res)=>{
             case "create":
                 proyectosController.insertProyect(req, res);
                 break;
+                case "modifyStatus":
+                proyectosController.modifyStatus(req, res);    
+                break;
         
             default:
                 break;

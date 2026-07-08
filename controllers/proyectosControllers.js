@@ -24,7 +24,7 @@ exports.getProyects = (req, res) => {
             t.unidad AS taskUnit
         FROM proyectos p
         LEFT JOIN tareas t ON p.id = t.fk_proyecto
-        WHERE p.activo = 1
+        WHERE p.activo = 1 AND t.vista = 1
         ORDER BY p.id, t.id;
     `;
 
@@ -88,7 +88,20 @@ exports.insertProyect = (req, res) => {
         })
 }
 
+exports.modifyStatus = (req,res)=>{
+    const {id, updates} = req.body;
+    db.query(
+        `UPDATE proyectos SET estatus = ? WHERE id = ?;`, [updates.status, id],
+        (err, result) => {
+            if (err) return detectError(err);
+            if (result) {
+                const encrypt = encryptData({message:"Estatus modificado"});
+                res.json(encrypt)
+            }
+        }
+    )
 
+}
 // la uso para refactorizar al validar si hay errores en la consulta sql
 function detectError(err) {
     return res.estatus(500).json({ error: err });

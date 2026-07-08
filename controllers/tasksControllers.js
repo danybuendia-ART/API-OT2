@@ -16,16 +16,24 @@ exports.createTask = (req, res) => {
 exports.changeStatus = (req, res) => {
     const { taskId, updates } = req.body;
     let completed = updates.completed;
-    
+
     completed == true ? completed = 1 : completed = 0;
 
     db.query(
         `UPDATE tareas SET completado = ? WHERE id = ?;`, [completed, taskId],
         (err, result) => {
             if (err) return res.status(500).json({ error: err });
-
-            console.log("estatus de tarea atualizada id: ", taskId);
             res.json(encryptData({ message: "Estatus actualizado" }));
+        }
+    )
+}
+exports.deleteTask = (req, res) => {
+    const { taskId } = req.body;
+    db.query(
+        `UPDATE tareas SET vista = 0 WHERE id = ?`, [taskId],
+        (err, result) => {
+            if (err) return res.status(500).json({ error: err });
+            res.json(encryptData({ message: "tarea eliminada" }));
         }
     )
 }

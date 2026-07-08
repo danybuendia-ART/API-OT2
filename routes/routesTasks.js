@@ -15,6 +15,9 @@ router.post('/', (req, res) => {
         case "changeStatus":
         taskController.changeStatus(req,res);  
         break;
+        case "Delete":
+        taskController.deleteTask(req, res);  
+        break;
       /*case 'update': //en desarrollo
         taskController.updateUsuario(req, res);
         break;*/
