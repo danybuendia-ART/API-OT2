@@ -4,17 +4,54 @@ const fs = require("fs");
 const multer = require("multer");
 const path = require("path");
 const { decryptData } = require("../utils/encrypt");
+const { saveEvidenceFile } = require("../controllers/evidencesController");
 
 const router = express.Router();
-
-// Configuración de multer para guardar en carpeta local de forma compatible con Windows y Linux
 const uploadDir = path.resolve(__dirname, "..", "uploads");
-
 fs.mkdirSync(uploadDir, { recursive: true });
+
+function getMetadata(body = {}) {
+  if (body && body.payload) {
+    return decryptData(body.payload);
+  }
+  return body || {};
+}
+
+function getTargetFolder(action) {
+  const normalizedAction = String(action || "evidences").toLowerCase();
+
+  if (normalizedAction === "invoices" || normalizedAction === "invoice" || normalizedAction === "facturas") {
+    return path.resolve(uploadDir, "facturas");
+  }
+
+  if (normalizedAction === "quotations" || normalizedAction === "quotation" || normalizedAction === "cotizaciones") {
+    return path.resolve(uploadDir, "cotizaciones");
+  }
+
+  return path.resolve(uploadDir, "evidences");
+}
+
+function buildFileInfo(file) {
+  return {
+    fileName: file.filename,
+    filePath: path.relative(path.resolve(__dirname, ".."), file.path).split(path.sep).join("/"),
+    absolutePath: file.path,
+    mimeType: file.mimetype,
+    size: file.size,
+  };
+}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadDir);
+    try {
+      const metadata = getMetadata(req.body);
+      const targetFolder = getTargetFolder(metadata.action || metadata.type);
+      fs.mkdirSync(targetFolder, { recursive: true });
+      cb(null, targetFolder);
+    } catch (err) {
+      console.error("Error al determinar la carpeta de destino:", err);
+      cb(null, uploadDir);
+    }
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
@@ -26,32 +63,27 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.post("/", upload.single("archivo"), (req, res) => {
+router.post("/", upload.single("archivo"), async (req, res) => {
   try {
-    // Desencriptar metadatos
-    const { payload } = req.body;
-    let metadata = {};
-    if (payload) {
-      metadata = decryptData(payload);
-    }
+    const metadata = getMetadata(req.body);
 
     if (!req.file) {
       return res.status(400).json({ error: "No se recibió archivo" });
     }
 
-    // Aquí puedes guardar referencia en DB
-    const evidencia = {
-      ...metadata,
-      fileName: req.file.filename,
-      filePath: path.posix.join("uploads", req.file.filename),
-      absolutePath: req.file.path,
-      mimeType: req.file.mimetype,
-      size: req.file.size,
-    };
+    const fileInfo = buildFileInfo(req.file);
+    const action = String(metadata.action || metadata.type || "evidences").toLowerCase();
 
-    console.log("Evidencia procesada:", evidencia);
+    console.log("Archivo procesado:", fileInfo);
 
-    res.json({ message: "Archivo recibido", evidencia });
+    switch (action) {
+      case "evidences":
+      case "evidence":
+        await saveEvidenceFile(metadata, fileInfo, res);
+        break;
+      default:
+        return res.status(400).json({ error: "Action no soportada" });
+    }
   } catch (err) {
     console.error("Error al procesar archivo:", err);
     res.status(500).json({ error: "Error al procesar archivo" });
