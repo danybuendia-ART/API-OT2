@@ -7,29 +7,34 @@ const { encryptData } = require("../utils/encrypt");
 exports.getProyects = (req, res) => {
     console.log("peticion proyectos")
     const sql = `
-SELECT
-    p.id AS projectId,
-    p.nombre AS projectName,
-    p.descripcion AS projectDescription,
-    p.estatus AS projectStatus,
-    p.fecha_inicio AS projectCreatedAt,
-    p.fecha_finalizado AS projectCompletedAt,
-    t.id AS taskId,
-    t.titulo AS taskTitle,
-    t.descripcion AS taskDescription,
-    t.responsable AS taskAssignedTo,
-    t.completado AS taskCompleted,
-    t.fecha_inicio AS taskCreatedAt,
-    t.fechaEntrega AS taskDueDate,
-    t.cantidad AS taskQuantity,
-    t.unidad AS taskUnit
-FROM proyectos p
-LEFT JOIN tareas t 
-    ON p.id = t.fk_proyecto 
-    AND t.vista = 1
-WHERE p.activo = 1
-ORDER BY p.id, t.id;
-    `;
+        SELECT
+            p.id AS projectId,
+            p.nombre AS projectName,
+            p.descripcion AS projectDescription,
+            p.estatus AS projectStatus,
+            p.fecha_inicio AS projectCreatedAt,
+            p.fecha_finalizado AS projectCompletedAt,
+            t.id AS taskId,
+            t.titulo AS taskTitle,
+            t.descripcion AS taskDescription,
+            t.responsable AS taskAssignedTo,
+            t.completado AS taskCompleted,
+            t.fecha_inicio AS taskCreatedAt,
+            t.fechaEntrega AS taskDueDate,
+            t.cantidad AS taskQuantity,
+            t.unidad AS taskUnit,
+            e.id AS evidenceId,
+            e.fileName AS evidenceFileName,
+            e.startDate AS evidenceStartDate,
+            e.uploadedBy AS evidenceUploadedBy
+        FROM proyectos p
+        LEFT JOIN tareas t 
+            ON p.id = t.fk_proyecto 
+            AND t.vista = 1
+        LEFT JOIN evidences e
+            ON t.id = e.idTask
+        WHERE p.activo = 1
+        ORDER BY p.id, t.id, e.id;`;
 
     db.query(sql, (err, rows) => {
         if (err) return res.status(500).json({ error: err });
@@ -39,7 +44,6 @@ ORDER BY p.id, t.id;
         }
 
         const proyectosMap = new Map();
-
         rows.forEach(row => {
             const projectId = row.projectId;
             if (!proyectosMap.has(projectId)) {
@@ -55,21 +59,37 @@ ORDER BY p.id, t.id;
             }
 
             if (row.taskId) {
-                proyectosMap.get(projectId).tasks.push({
-                    id: row.taskId,
-                    title: row.taskTitle,
-                    description: row.taskDescription,
-                    assignedTo: row.taskAssignedTo,
-                    completed: Boolean(row.taskCompleted),
-                    createdAt: row.taskCreatedAt,
-                    dueDate: row.taskDueDate,
-                    quantity: row.taskQuantity,
-                    unit: row.taskUnit
-                });
+                // Buscar si ya existe la tarea en el arreglo
+                let task = proyectosMap.get(projectId).tasks.find(t => t.id === row.taskId);
+                if (!task) {
+                    task = {
+                        id: row.taskId,
+                        title: row.taskTitle,
+                        description: row.taskDescription,
+                        assignedTo: row.taskAssignedTo,
+                        completed: Boolean(row.taskCompleted),
+                        createdAt: row.taskCreatedAt,
+                        dueDate: row.taskDueDate,
+                        quantity: row.taskQuantity,
+                        unit: row.taskUnit,
+                        evidences: []
+                    };
+                    proyectosMap.get(projectId).tasks.push(task);
+                }
+
+                if (row.evidenceId) {
+                    task.evidences.push({
+                        id: row.evidenceId,
+                        fileName: row.evidenceFileName,
+                        startDate: row.evidenceStartDate,
+                        uploadedBy: row.evidenceUploadedBy
+                    });
+                }
             }
         });
 
         const proyectos = Array.from(proyectosMap.values());
+        console.log("resultado del objeto: ",proyectos);
         res.json(proyectos);
     });
 }
