@@ -6,7 +6,6 @@ exports.getUsuarios = (req, res) => {
   db.query('SELECT id, nombre, correo, permiso FROM usuarios', (err, results) => {
     if (err) return res.status(500).json({ error: err });
     res.json(results.length);
-    console.log("peticion para obtener usuarios de la bd")
   });
 };
 
@@ -24,7 +23,7 @@ exports.createUsuario = (req, res) => {
       if (results.length > 0) {
         //console.log("Intento de registro con nombre o correo ya existente:", { nombre, correo });
         // Ya existe un usuario con ese nombre o correo
-        console.log(`registro dublicado del usuario ${correo}`)
+        //console.log(`registro dublicado del usuario ${correo}`)
         return res.json(encryptData({
           warn: "El usuario o correo ya está registrados"
         }));
@@ -37,7 +36,7 @@ exports.createUsuario = (req, res) => {
         (err, result) => {
           if (err) return res.status(500).json({ error: err });
           res.json(encryptData({ message: "Usuario creado exitosamente" }));
-          console.log("Usuario creado:", { id: result.insertId, nombre, correo, pass });
+          //console.log("Usuario creado:", { id: result.insertId, nombre, correo, pass });
         }
       );
     }
@@ -46,14 +45,13 @@ exports.createUsuario = (req, res) => {
 exports.login = (req, res) => {
   const { correo, pass } = req.body;
 
-  console.log(`${correo} \n ${pass}`);
   db.query(
     'SELECT id, nombre, correo, permiso FROM usuarios WHERE correo = ? AND pass = ?',
     [correo, pass],
     (err, results) => {
       if (err) return res.status(500).json({ error: err });
       if (results.length === 0) {
-        console.log("Intento de inicio de sesión fallido con correo:", correo);
+        //console.log("Intento de inicio de sesión fallido con correo:", correo);
         return res.json({ warn: 'Credenciales inválidas' });
       }
 
@@ -61,7 +59,6 @@ exports.login = (req, res) => {
       const encryptedResponse = encryptData(results)
 
       //console.log("Inicio de sesión exitoso:", { id: results[0].id, nombre: results[0].nombre, correo: results[0].correo });
-      console.log(`envio de datos: ${encryptedResponse}`);
       res.json({ encryptedResponse }, { message: `inicio de sesión exitoso bienvenid@ ${results[0].nombre}` });
     }
   );
