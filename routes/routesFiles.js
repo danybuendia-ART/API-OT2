@@ -1,4 +1,3 @@
-
 const express = require("express");
 const fs = require("fs");
 const multer = require("multer");
@@ -12,6 +11,7 @@ fs.mkdirSync(uploadDir, { recursive: true });
 
 function getMetadata(body = {}) {
   if (body && body.payload) {
+    console.log(body.payload);
     return decryptData(body.payload);
   }
   return body || {};

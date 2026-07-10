@@ -5,27 +5,30 @@ const { encryptData } = require("../utils/encrypt");
 
 //obtiene los proyectos activos con sus tareas
 exports.getProyects = (req, res) => {
+    console.log("peticion proyectos")
     const sql = `
-        SELECT
-            p.id AS projectId,
-            p.nombre AS projectName,
-            p.descripcion AS projectDescription,
-            p.estatus AS projectStatus,
-            p.fecha_inicio AS projectCreatedAt,
-            p.fecha_finalizado AS projectCompletedAt,
-            t.id AS taskId,
-            t.titulo AS taskTitle,
-            t.descripcion AS taskDescription,
-            t.responsable AS taskAssignedTo,
-            t.completado AS taskCompleted,
-            t.fecha_inicio AS taskCreatedAt,
-            t.fechaEntrega AS taskDueDate,
-            t.cantidad AS taskQuantity,
-            t.unidad AS taskUnit
-        FROM proyectos p
-        LEFT JOIN tareas t ON p.id = t.fk_proyecto
-        WHERE p.activo = 1 AND t.vista = 1
-        ORDER BY p.id, t.id;
+SELECT
+    p.id AS projectId,
+    p.nombre AS projectName,
+    p.descripcion AS projectDescription,
+    p.estatus AS projectStatus,
+    p.fecha_inicio AS projectCreatedAt,
+    p.fecha_finalizado AS projectCompletedAt,
+    t.id AS taskId,
+    t.titulo AS taskTitle,
+    t.descripcion AS taskDescription,
+    t.responsable AS taskAssignedTo,
+    t.completado AS taskCompleted,
+    t.fecha_inicio AS taskCreatedAt,
+    t.fechaEntrega AS taskDueDate,
+    t.cantidad AS taskQuantity,
+    t.unidad AS taskUnit
+FROM proyectos p
+LEFT JOIN tareas t 
+    ON p.id = t.fk_proyecto 
+    AND t.vista = 1
+WHERE p.activo = 1
+ORDER BY p.id, t.id;
     `;
 
     db.query(sql, (err, rows) => {
@@ -76,24 +79,24 @@ exports.insertProyect = (req, res) => {
 
     db.query(
         'INSERT INTO proyectos (fecha_inicio, estatus, nombre, descripcion, fk_usuario)VALUES(NOW(), ?, ?, ?, ?)',
-        [ estatus, nombre, descripcion, fk_usuario],
+        [estatus, nombre, descripcion, fk_usuario],
         (err, result) => {
             if (err) return detectError(err);
             if (result) {
-                const encrypt = encryptData({message:"Proyecto registrado"});
+                const encrypt = encryptData({ message: "Proyecto registrado" });
                 res.json(encrypt)
             }
         })
 }
 
-exports.modifyStatus = (req,res)=>{
-    const {id, updates} = req.body;
+exports.modifyStatus = (req, res) => {
+    const { id, updates } = req.body;
     db.query(
         `UPDATE proyectos SET estatus = ? WHERE id = ?;`, [updates.status, id],
         (err, result) => {
             if (err) return detectError(err);
             if (result) {
-                const encrypt = encryptData({message:"Estatus modificado"});
+                const encrypt = encryptData({ message: "Estatus modificado" });
                 res.json(encrypt)
             }
         }
