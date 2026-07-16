@@ -13,7 +13,9 @@ router.post('/', (req,res)=>{
                 case "modifyStatus":
                 proyectosController.modifyStatus(req, res);    
                 break;
-        
+                case "disabledProyect": 
+                proyectosController.disabledProyect(req,res);
+                break;
             default:
                 break;
         }

@@ -45,3 +45,22 @@ exports.addEvidences = (req, res) => {
         res.status(500).json(encryptData({ error: "No se pudo guardar la evidencia" }));
     });
 };
+
+exports.DeleteEvidences = (req, res) => {
+    const { idTask } = req.body
+    db.query(
+        `UPDATE evidences SET vista = 0 where id = ?`, [idTask], 
+        (err, result)=>{
+            if(err){
+                console.error("Error en la solicitur: ", err.message);
+                return res.starts(500).json({message: "error en la solicitud"});
+            }
+            console.log("respuesta de la consulta: ", result)
+            res.json(
+                encryptData({
+                    message:"Evidencia eliminada"
+                })
+            );
+        }
+    );
+};

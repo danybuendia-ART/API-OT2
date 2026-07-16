@@ -66,6 +66,7 @@ const upload = multer({ storage });
 router.post("/", upload.single("archivo"), async (req, res) => {
   try {
     const metadata = getMetadata(req.body);
+    console.log("Informacion obtenida de evidencias: ", metadata);
 
     if (!req.file) {
       return res.status(400).json({ error: "No se recibió archivo" });
@@ -78,7 +79,6 @@ router.post("/", upload.single("archivo"), async (req, res) => {
 
     switch (action) {
       case "evidences":
-      case "evidence":
         await saveEvidenceFile(metadata, fileInfo, res);
         break;
       default:

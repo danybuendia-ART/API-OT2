@@ -6,9 +6,12 @@ exports.createTask = (req, res) => {
     const { assignedTo, completed, description, projectId, quantity, title, unit, dueDate } = req.body;
     db.query(
         `INSERT INTO tareas (fk_proyecto, completado, fecha_inicio, titulo, descripcion, responsable, cantidad, unidad, fechaEntrega)values
-        (?, ?, NOW(), ?, ? ,?,?,?,?);`, [projectId, completed, title, description, assignedTo, quantity, unit, dueDate],
+        (?, ?, NOW(), ?, ? ,?,?,?,?);`, [projectId, completed, title, description, assignedTo, quantity, unit, formatDateToMySQL(dueDate)],
         (err, result) => {
-            if (err) return res.status(500).json({ error: err });
+            if (err) {
+                console.log("error de bd:" ,err);
+                return res.status(500).json({ error: err });
+            }
             res.json(encryptData({ message: "Tarea creada exitosamente" }));
         }
     )
@@ -50,4 +53,12 @@ exports.modifyTask = (req, res) => {
         }
     )
 
+}
+
+function formatDateToMySQL(dateString) {
+  const date = new Date(dateString);
+  const pad = n => n < 10 ? '0' + n : n;
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+         `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }

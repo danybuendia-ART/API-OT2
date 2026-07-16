@@ -3,6 +3,7 @@ const cors = require('cors');
 const CryptoJS = require('crypto-js');
 require('dotenv').config();
 const { decryptData } = require("./utils/encrypt")
+const path = require("path");
 
 const app = express();
 
@@ -22,7 +23,7 @@ app.use((req, res, next) => {
             console.log("datos cifrados: ", req.body.payload);
             req.body = decryptData(req.body.payload);
             
-            console.log("Payload desencriptado:", req.body);
+            //console.log("Payload desencriptado:", req.body);
         } catch (err) {
             console.error("Error al desencriptar payload:", err);
             return res.status(400).json({ error: "Payload inválido" });
@@ -31,7 +32,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// Rutas
+// Rutas de endpoint
 const usuariosRouter = require('./routes/routesUsuarios');
 app.use("/usuarios", usuariosRouter);
 
@@ -47,6 +48,12 @@ app.use("/tasks", tasksRouter);
 const fileRouter = require("./routes/routesFiles");
 app.use("/files", fileRouter);
 
+// Servir archivos estáticos desde uploads/evidences
+app.use('/evidences', express.static(path.join(__dirname, 'uploads/evidences')));
+
+//endpoint evidencias
+const routesEvidences = require("./routes/routesEvidences");
+app.use("/actionEvidences", routesEvidences)
 
 app.get('/', (req, res) => {
     res.send("servidor habilitado");

@@ -74,7 +74,7 @@ exports.addEmployee = (req, res) => {
     } = req.body;
 
     db.query(
-        'INSERT INTO employee (employeeNumber, position, department, email, phone, address, startDate, birthDate, emergencyContact, emergencyPhone, status, name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO employee (employeeNumber, position, department, email, phone, address, startDate, birthDate, emergencyContact, emergencyPhone, status, name) VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?)',
         [
             employeeNumber || null,
             position || null,
@@ -82,16 +82,18 @@ exports.addEmployee = (req, res) => {
             email || null,
             phone || null,
             address || null,
-            startDate || null,
-            birthDate || null,
+            birthDate ? formatDateToMySQL(birthDate) : null,
             emergencyContact || null,
             emergencyPhone || null,
             status || null,
             name || null
         ],
         (err, result) => {
-            if (err) return res.status(500).json({ error: err.message || err });
-
+            if (err) {
+                console.log("Respuesta del error: ", err.message || err);
+                return res.status(500).json({ error: err.message || err });
+            }
+            console.log ("Respuesta de la consulta: ",result)
             res.json(
                 encryptData({
                     message: 'Empleado registrado correctamente',
@@ -101,3 +103,11 @@ exports.addEmployee = (req, res) => {
         }
     );
 };
+
+function formatDateToMySQL(dateString) {
+  const date = new Date(dateString);
+  const pad = n => n < 10 ? '0' + n : n;
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+         `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}

@@ -5,7 +5,6 @@ const { encryptData } = require("../utils/encrypt");
 
 //obtiene los proyectos activos con sus tareas
 exports.getProyects = (req, res) => {
-    console.log("peticion proyectos")
     const sql = `
         SELECT
             p.id AS projectId,
@@ -32,7 +31,7 @@ exports.getProyects = (req, res) => {
             ON p.id = t.fk_proyecto 
             AND t.vista = 1
         LEFT JOIN evidences e
-            ON t.id = e.idTask
+            ON t.id = e.idTask AND e.vista = 1
         WHERE p.activo = 1
         ORDER BY p.id, t.id, e.id;`;
 
@@ -82,14 +81,15 @@ exports.getProyects = (req, res) => {
                         id: row.evidenceId,
                         fileName: row.evidenceFileName,
                         startDate: row.evidenceStartDate,
-                        uploadedBy: row.evidenceUploadedBy
+                        uploadedBy: row.evidenceUploadedBy,
+                        url: `/evidences/${row.evidenceFileName}`
                     });
                 }
             }
         });
 
         const proyectos = Array.from(proyectosMap.values());
-        console.log("resultado del objeto: ",proyectos);
+        //console.log("resultado del objeto: ", proyectos);
         res.json(proyectos);
     });
 }
@@ -101,7 +101,10 @@ exports.insertProyect = (req, res) => {
         'INSERT INTO proyectos (fecha_inicio, estatus, nombre, descripcion, fk_usuario)VALUES(NOW(), ?, ?, ?, ?)',
         [estatus, nombre, descripcion, fk_usuario],
         (err, result) => {
-            if (err) return detectError(err);
+            if (err) {
+                console.log("error de base de datos: ", err)
+                return detectError(err)
+            };
             if (result) {
                 const encrypt = encryptData({ message: "Proyecto registrado" });
                 res.json(encrypt)
@@ -121,7 +124,20 @@ exports.modifyStatus = (req, res) => {
             }
         }
     )
+}
 
+exports.disabledProyect = (req, res) => {
+    const { id } = req.body;
+    db.query(
+        `UPDATE proyectos SET activo = 0 WHERE id = ?;`, [id],
+        (err, result) => {
+            if (err) return detectError(err);
+            if (result) {
+                const encrypt = encryptData({ message: "Proyecto eliminado" });
+                res.json(encrypt)
+            }
+        }
+    )
 }
 // la uso para refactorizar al validar si hay errores en la consulta sql
 function detectError(err) {
