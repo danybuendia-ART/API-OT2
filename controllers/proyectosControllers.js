@@ -13,6 +13,7 @@ exports.getProyects = (req, res) => {
             p.estatus AS projectStatus,
             p.fecha_inicio AS projectCreatedAt,
             p.fecha_finalizado AS projectCompletedAt,
+            p.priority AS projectPriority,
             t.id AS taskId,
             t.titulo AS taskTitle,
             t.descripcion AS taskDescription,
@@ -25,15 +26,18 @@ exports.getProyects = (req, res) => {
             e.id AS evidenceId,
             e.fileName AS evidenceFileName,
             e.startDate AS evidenceStartDate,
-            e.uploadedBy AS evidenceUploadedBy
+            e.uploadedBy AS evidenceUploadedBy,
+            emp.name as employee
         FROM proyectos p
         LEFT JOIN tareas t 
             ON p.id = t.fk_proyecto 
             AND t.vista = 1
         LEFT JOIN evidences e
             ON t.id = e.idTask AND e.vista = 1
+        LEFT JOIN employee emp
+            ON p.responsible = emp.id
         WHERE p.activo = 1
-        ORDER BY p.id, t.id, e.id;`;
+        ORDER BY p.fecha_inicio desc;`;
 
     db.query(sql, (err, rows) => {
         if (err) return res.status(500).json({ error: err });
@@ -53,6 +57,8 @@ exports.getProyects = (req, res) => {
                     status: row.projectStatus,
                     createdAt: row.projectCreatedAt,
                     completedAt: row.projectCompletedAt,
+                    employee: row.employee,
+                    priority: Boolean(row.projectPriority),
                     tasks: []
                 });
             }
@@ -95,11 +101,13 @@ exports.getProyects = (req, res) => {
 }
 
 exports.insertProyect = (req, res) => {
-    const { estatus, nombre, descripcion, fk_usuario } = req.body;
-
+    const { estatus, nombre, descripcion, fk_usuario, employee, priority } = req.body;
+    console.log(estatus, nombre, descripcion, fk_usuario, employee, priority)
+    const value = priority ? 1 : 0;
+    
     db.query(
-        'INSERT INTO proyectos (fecha_inicio, estatus, nombre, descripcion, fk_usuario)VALUES(NOW(), ?, ?, ?, ?)',
-        [estatus, nombre, descripcion, fk_usuario],
+        'INSERT INTO proyectos (fecha_inicio, estatus, nombre, descripcion, fk_usuario, responsible, priority)VALUES(NOW(), ?, ?, ?, ?, ? , ?)',
+        [estatus, nombre, descripcion, fk_usuario, employee, value],
         (err, result) => {
             if (err) {
                 console.log("error de base de datos: ", err)
@@ -141,6 +149,7 @@ exports.disabledProyect = (req, res) => {
 }
 // la uso para refactorizar al validar si hay errores en la consulta sql
 function detectError(err) {
+    console.log("Error obtenido: ", err)
     return res.estatus(500).json({ error: err });
 }
 // filtrado de todos los proyectos creados para los graficos
