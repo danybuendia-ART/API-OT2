@@ -48,8 +48,6 @@ exports.changeEmployee = (req, res) => {
                 console.log(err);
                 return res.status(500).json({ error: error.message || err });
             }
-
-            console.log("modificacion exitosa")
             console.log(encryptData({ message: "Datos Actualizados" }))
             res.json(
                 encryptData({

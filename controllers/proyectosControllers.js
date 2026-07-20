@@ -15,6 +15,8 @@ exports.getProyects = (req, res) => {
             p.fecha_inicio AS projectCreatedAt,
             p.fecha_finalizado AS projectCompletedAt,
             p.priority AS projectPriority,
+            p.modificationDate,
+            p.approvedDate AS approvedDate, 
             t.id AS taskId,
             t.titulo AS taskTitle,
             t.descripcion AS taskDescription,
@@ -57,8 +59,9 @@ exports.getProyects = (req, res) => {
                     description: row.projectDescription,
                     status: row.projectStatus,
                     createdAt: row.projectCreatedAt,
-                    completedAt: row.projectCompletedAt,
                     employee: row.employee,
+                    modificationDate: row.modificationDate === undefined ? "---": row.modificationDate = row.modificationDate,
+                    approvedDate: row.approvedDate === undefined ? "---" : row.approvedDate = row.approvedDate,
                     priority: Boolean(row.projectPriority),
                     tasks: []
                 });
@@ -95,9 +98,7 @@ exports.getProyects = (req, res) => {
             }
         });
 
-        console.log("solicitud recibida")
         const proyectos = Array.from(proyectosMap.values());
-        //console.log("resultado del objeto: ", proyectos);
         res.json(proyectos);
     });
 }
@@ -124,17 +125,32 @@ exports.insertProyect = (req, res) => {
 
 exports.modifyStatus = (req, res) => {
     const { id, updates } = req.body;
-    db.query(
-        `UPDATE proyectos SET estatus = ? WHERE id = ?;`, [updates.status, id],
-        (err, result) => {
-            if (err) return detectError(err);
-            if (result) {
-                const encrypt = encryptData({ message: "Estatus modificado" });
-                res.json(encrypt)
-            }
-        }
-    )
-}
+
+    console.log(updates)
+    let query = `
+        UPDATE proyectos
+        SET estatus = ?
+    `;
+
+    let params = [updates.status];
+
+    if (updates.status == "completed") {
+        query += `, approvedDate = NOW()`;
+    }
+
+    query += ` WHERE id = ?`;
+    params.push(id);
+
+    db.query(query, params, (err, result) => {
+        if (err) return detectError(err);
+
+        res.json(
+            encryptData({
+                message: "Estatus modificado"
+            })
+        );
+    });
+};
 
 exports.disabledProyect = (req, res) => {
     const { id } = req.body;
@@ -150,17 +166,17 @@ exports.disabledProyect = (req, res) => {
     )
 }
 
-exports.changePriority = (req , res)=> {
-    let { id, status }= req.body;
+exports.changePriority = (req, res) => {
+    let { id, status } = req.body;
     console.log(id, status)
     status === true ? status = 1 : status = 0;
 
     db.query(
-        `UPDATE proyectos SET priority = ? WHERE id = ?;`,[status, id],
-        (err, result)=>{
-            if(err) return detectError(err);
-            if(result){
-                const encrypt = encryptData({ message: "Prioridad modificada"});
+        `UPDATE proyectos SET priority = ? WHERE id = ?;`, [status, id],
+        (err, result) => {
+            if (err) return detectError(err);
+            if (result) {
+                const encrypt = encryptData({ message: "Prioridad modificada" });
                 res.json(encrypt)
             }
         }
