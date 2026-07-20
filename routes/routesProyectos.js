@@ -4,17 +4,20 @@ const proyectosController = require('../controllers/proyectosControllers');
 
 router.get('/', proyectosController.getProyects);
 
-router.post('/', (req,res)=>{
-    if(req.body.action){
+router.post('/', (req, res) => {
+    if (req.body.action) {
         switch (req.body.action) {
             case "create":
                 proyectosController.insertProyect(req, res);
                 break;
-                case "modifyStatus":
-                proyectosController.modifyStatus(req, res);    
+            case "modifyStatus":
+                proyectosController.modifyStatus(req, res);
                 break;
-                case "disabledProyect": 
-                proyectosController.disabledProyect(req,res);
+            case "disabledProyect":
+                proyectosController.disabledProyect(req, res);
+                break;
+            case "changePriority":
+                proyectosController.changePriority(req, res);
                 break;
             default:
                 break;
@@ -23,4 +26,4 @@ router.post('/', (req,res)=>{
 })
 
 module.exports = router;
- 
+

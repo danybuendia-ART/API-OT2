@@ -1,3 +1,4 @@
+const { enc } = require('crypto-js');
 const db = require('../db/connection');
 // me permite encriptar los datos que entran en su parametro
 const { encryptData } = require("../utils/encrypt");
@@ -94,6 +95,7 @@ exports.getProyects = (req, res) => {
             }
         });
 
+        console.log("solicitud recibida")
         const proyectos = Array.from(proyectosMap.values());
         //console.log("resultado del objeto: ", proyectos);
         res.json(proyectos);
@@ -104,7 +106,7 @@ exports.insertProyect = (req, res) => {
     const { estatus, nombre, descripcion, fk_usuario, employee, priority } = req.body;
     console.log(estatus, nombre, descripcion, fk_usuario, employee, priority)
     const value = priority ? 1 : 0;
-    
+
     db.query(
         'INSERT INTO proyectos (fecha_inicio, estatus, nombre, descripcion, fk_usuario, responsible, priority)VALUES(NOW(), ?, ?, ?, ?, ? , ?)',
         [estatus, nombre, descripcion, fk_usuario, employee, value],
@@ -146,6 +148,24 @@ exports.disabledProyect = (req, res) => {
             }
         }
     )
+}
+
+exports.changePriority = (req , res)=> {
+    let { id, status }= req.body;
+    console.log(id, status)
+    status === true ? status = 1 : status = 0;
+
+    db.query(
+        `UPDATE proyectos SET priority = ? WHERE id = ?;`,[status, id],
+        (err, result)=>{
+            if(err) return detectError(err);
+            if(result){
+                const encrypt = encryptData({ message: "Prioridad modificada"});
+                res.json(encrypt)
+            }
+        }
+    )
+
 }
 // la uso para refactorizar al validar si hay errores en la consulta sql
 function detectError(err) {
