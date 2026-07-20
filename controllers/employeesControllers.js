@@ -36,7 +36,7 @@ exports.changeEmployee = (req, res) => {
             email || null,
             phone || null,
             address || null,
-            startDate || null,
+            formatDateToMySQL(startDate) || null,
             emergencyContact || null,
             emergencyPhone || null,
             status || null,
@@ -44,7 +44,10 @@ exports.changeEmployee = (req, res) => {
             id
         ],
         (err, result) => {
-            if (err) return res.status(500).json({ error: error.message || err });
+            if (err) {
+                console.log(err);
+                return res.status(500).json({ error: error.message || err });
+            }
 
             console.log("modificacion exitosa")
             console.log(encryptData({ message: "Datos Actualizados" }))

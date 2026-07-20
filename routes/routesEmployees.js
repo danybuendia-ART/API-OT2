@@ -15,6 +15,7 @@ router.post('/', (req, res) => {
             employeesController.addEmployee(req, res);
             break;
         case 'updateUserInfo':
+            console.log(req.body)
             employeesController.changeEmployee(req, res);
             break;
         default:
