@@ -99,6 +99,7 @@ exports.getProyects = (req, res) => {
         });
 
         const proyectos = Array.from(proyectosMap.values());
+        //console.log(proyectos)
         res.json(proyectos);
     });
 }

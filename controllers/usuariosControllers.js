@@ -3,9 +3,10 @@ const { encryptData } = require("../utils/encrypt");
 
 // Obtener todos los usuarios
 exports.getUsuarios = (req, res) => {
-  db.query('SELECT id, nombre, correo, permiso FROM usuarios', (err, results) => {
+  db.query('SELECT id, nombre, correo, permiso, activo FROM usuarios', (err, results) => {
     if (err) return res.status(500).json({ error: err });
-    res.json(results.length);
+    console.log(results)
+    res.json(encryptData(results));
   });
 };
 
@@ -75,3 +76,16 @@ exports.updateUsuario = (req, res) => {
     }
   );
 };
+
+exports.changePermission = (req, res) => {
+  const { id, permiso } = req.body;
+  db.query(
+    `UPDATE usuarios SET permiso = ? WHERE id = ?;`,
+    [permiso, id],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err });
+      console.log( "Permiso modificado");
+      res.json(encryptData({ message: "Permiso modificado" }));
+    }
+  )
+}
