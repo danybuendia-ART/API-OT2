@@ -23,7 +23,7 @@ app.use((req, res, next) => {
             console.log("datos cifrados: ", req.body.payload);
             req.body = decryptData(req.body.payload);
             
-            //console.log("Payload desencriptado:", req.body);
+            console.log("Payload desencriptado:", req.body);
         } catch (err) {
             console.error("Error al desencriptar payload:", err);
             return res.status(400).json({ error: "Payload inválido" });

@@ -47,7 +47,7 @@ exports.login = (req, res) => {
   const { correo, pass } = req.body;
 
   db.query(
-    'SELECT id, nombre, correo, permiso FROM usuarios WHERE correo = ? AND pass = ?',
+    'SELECT id, nombre, correo, permiso FROM usuarios WHERE (correo = ? AND pass = ?) AND activo = 1',
     [correo, pass],
     (err, results) => {
       if (err) return res.status(500).json({ error: err });
@@ -84,8 +84,21 @@ exports.changePermission = (req, res) => {
     [permiso, id],
     (err, result) => {
       if (err) return res.status(500).json({ error: err });
-      console.log( "Permiso modificado");
+      console.log("Permiso modificado");
       res.json(encryptData({ message: "Permiso modificado" }));
+    }
+  )
+}
+
+exports.activeUser = (req, res) => {
+  const { id, value } = req.body;
+  db.query(
+    `UPDATE usuarios SET activo = ? WHERE id = ?;`,
+    [value, id],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: err });
+      console.log(`Usuario ${value == 1 ? "activo" : "inactivo"}`)
+      res.json(encryptData({ message: `Usuario ${value == 1 ? "activo" : "inactivo"}` }));
     }
   )
 }

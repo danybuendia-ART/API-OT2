@@ -18,8 +18,12 @@ router.post('/', (req, res) => {
       case 'update': //en desarrollo
         usuariosController.updateUsuario(req, res);
         break;
-      case 'changePermiso': //en desarrollo
+      case 'changePermiso':
         usuariosController.changePermission(req, res);
+        break;
+      case 'activeUser': 
+      console.log("ejecutado ...")
+        usuariosController.activeUser(req, res);
         break;
       default:
         res.status(400).json({ error: 'Acción no reconocida' });
